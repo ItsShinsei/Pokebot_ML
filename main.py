@@ -18,60 +18,38 @@ def get_pokemon_info(name):
         types = ', '.join([t['type']['name'] for t in data['types']])
         height = data['height']
         weight = data['weight']
-        return f"{name.capitalize()} adalah Pokémon bertipe {types}. Tinggi: {height}, Berat: {weight}."
+        abilities = ', '.join([a['ability']['name'] for a in data['abilities']])
+        stats = ', '.join([f"{s['stat']['name']}: {s['base_stat']}" for s in data['stats']])
+        return (
+            f"{name.capitalize()} adalah Pokémon bertipe {types}. "
+            f"Tinggi: {height}, Berat: {weight}. "
+            f"Kemampuan: {abilities}. "
+            f"Statistik: {stats}."
+        )
     else:
         return None
 
+def search_pokemon_in_text(prompt):
+    # Try to find a Pokémon name in the prompt using the PokéAPI list
+    poke_list_url = "https://pokeapi.co/api/v2/pokemon?limit=10000"
+    response = requests.get(poke_list_url)
+    if response.status_code == 200:
+        all_pokemon = [p['name'] for p in response.json()['results']]
+        for word in prompt.lower().split():
+            if word in all_pokemon:
+                return word
+    return None
+
 def chat_inference(prompt):
-    words = prompt.lower().split()
-    for word in words:
-        info = get_pokemon_info(word)
+    # Try to extract Pokémon name from prompt
+    pokemon_name = search_pokemon_in_text(prompt)
+    if pokemon_name:
+        info = get_pokemon_info(pokemon_name)
         if info:
             return info
-    pokemon_keywords = [
-        "pokemon", "evolution", "trainer", "gym", "pokeball", "ash", "pikachu", "charizard", "bulbasaur", "squirtle"
-    ]
-    if any(keyword in prompt.lower() for keyword in pokemon_keywords):
-        response = chat.send_message(prompt)
-        return response.text
-    return "Maaf, saya hanya dapat menjawab pertanyaan seputar dunia Pokémon."
 
-
-# from google import generativeai
-# import os
-# import requests
-# from dotenv import load_dotenv
-# load_dotenv()
-
-# api_key = os.getenv("API_KEY")
-# client  = generativeai.Client(api_key=api_key)
-# chat  = client.chats.create(model="gemini-2.0-flash")
-
-# def get_pokemon_info(name):
-#     url = f"https://pokeapi.co/api/v2/pokemon/{name.lower()}"
-#     response = requests.get(url)
-#     if response.status_code == 200:
-#         data = response.json()
-#         types = ', '.join([t['type']['name'] for t in data['types']])
-#         height = data['height']
-#         weight = data['weight']
-#         return f"{name.capitalize()} adalah Pokémon bertipe {types}. Tinggi: {height}, Berat: {weight}."
-#     else:
-#         return None
-
-# def chat_inference(prompt):
-   
-#     words = prompt.lower().split()
-#     for word in words:
-#         info = get_pokemon_info(word)
-#         if info:
-#             return info
-   
-#     pokemon_keywords = [
-#         "pokemon", "evolution", "trainer", "gym", "pokeball", "ash", "pikachu", "charizard", "bulbasaur", "squirtle"
-#     ]
-#     if any(keyword in prompt.lower() for keyword in pokemon_keywords):
-#         response = chat.send_message(prompt)
-#         return response.text
-   
-#     return "Maaf, saya hanya dapat menjawab pertanyaan seputar dunia Pokémon."
+    # If not found, try to answer with Gemini AI
+    response = chat.send_message(
+        f"Jawab pertanyaan ini dengan pengetahuan Pokémon dan gunakan data dari https://pokeapi.co jika memungkinkan: {prompt}"
+    )
+    return response.text if hasattr(response, "text") else str(response)
