@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 api_key = os.getenv("API_KEY")
-client  = genai.Client(api_key=api_key)
+client  = generativeai.Client(api_key=api_key)
 chat  = client.chats.create(model="gemini-2.0-flash")
 
 def get_pokemon_info(name):
