@@ -9,7 +9,7 @@ with st.sidebar:
     if st.button("🔄 Reset Percakapan"):
         st.session_state.messages = []
         st.success("Percakapan telah direset.")
-        st.experimental_rerun()
+        st.rerun()
 
 # Judul utama
 st.title("🤖 Pokebot - Asisten Pokémon Pintar")
