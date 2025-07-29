@@ -1,4 +1,4 @@
-from google import genai
+from google import generativeai
 import os
 import requests
 from dotenv import load_dotenv
